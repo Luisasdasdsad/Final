@@ -13,7 +13,7 @@ const PlayerContextProvider = (props) => {
 
     const [songsData, setSongsData] = useState([]);
     const [albumsData, setAlbumsData] = useState([]);
-    const [track, setTrack] = useState(songsData[0]);
+    const [track, setTrack] = useState(null);
     const [playStatus, setPlayStatus] = useState(false);
     const [isLooping, setIsLooping] = useState(false);
     const [originalSongsData, setOriginalSongsData] = useState([]);
@@ -53,32 +53,33 @@ const PlayerContextProvider = (props) => {
 
     useEffect(() => {
         setTimeout(() => {
-            audioRef.current.ontimeupdate = () => {
-                seekBar.current.style.width = (Math.floor(audioRef.current.currentTime / audioRef.current.duration * 100)) + "%";
-                setTime({
-                    currentTime: {
-                        second: Math.floor(audioRef.current.currentTime % 60),
-                        minute: Math.floor(audioRef.current.currentTime / 60)
-                    },
-                    totalTime: {
-                        second: Math.floor(audioRef.current.duration % 60),
-                        minute: Math.floor(audioRef.current.duration / 60)
-                    }
-                })
+            if (audioRef.current) {
+                audioRef.current.ontimeupdate = () => {
+                    seekBar.current.style.width = (Math.floor(audioRef.current.currentTime / audioRef.current.duration * 100)) + "%";
+                    setTime({
+                        currentTime: {
+                            second: Math.floor(audioRef.current.currentTime % 60),
+                            minute: Math.floor(audioRef.current.currentTime / 60)
+                        },
+                        totalTime: {
+                            second: Math.floor(audioRef.current.duration % 60),
+                            minute: Math.floor(audioRef.current.duration / 60)
+                        }
+                    });
+                };
             }
-        }, 1000)
-
-    }, [audioRef])
+        }, 1000);
+    }, [audioRef]);
 
     const play = () => {
         audioRef.current.play();
         setPlayStatus(true);
-    }
+    };
 
     const pause = () => {
         audioRef.current.pause();
         setPlayStatus(false);
-    }
+    };
 
     const toggleLoop = () => {
         setIsLooping(!isLooping);
@@ -86,7 +87,7 @@ const PlayerContextProvider = (props) => {
 
     const toggleShuffle = () => {
         setIsShuffle(!isShuffle);
-    }
+    };
 
     useEffect(() => {
         if (audioRef.current) {
@@ -101,7 +102,7 @@ const PlayerContextProvider = (props) => {
             [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
         }
         setSongsData(shuffledSongs);
-    }
+    };
 
     useEffect(() => {
         if (isShuffle) {
@@ -116,10 +117,10 @@ const PlayerContextProvider = (props) => {
             if (id === item._id) {
                 setTrack(item);
             }
-        })
+        });
         await audioRef.current.play();
         setPlayStatus(true);
-    }
+    };
 
     const previusSong = async () => {
         songsData.map(async (item, index) => {
@@ -128,8 +129,8 @@ const PlayerContextProvider = (props) => {
                 await audioRef.current.play();
                 setPlayStatus(true);
             }
-        })
-    }
+        });
+    };
 
     const nextSong = async () => {
         songsData.map(async (item, index) => {
@@ -138,37 +139,39 @@ const PlayerContextProvider = (props) => {
                 await audioRef.current.play();
                 setPlayStatus(true);
             }
-        })
-    }
+        });
+    };
 
     const seekSong = async (e) => {
-        audioRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration)
-    }
+        audioRef.current.currentTime = ((e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration);
+    };
 
     const getSongsData = async () => {
         try {
             const response = await axios.get(`${url}/api/song/list`);
+            console.log('Songs data:', response.data.songs);
             setSongsData(response.data.songs);
             setTrack(response.data.songs[0]);
             setOriginalSongsData(response.data.songs);
         } catch (error) {
             console.log('error getSongsData', error);
         }
-    }
+    };
 
     const getAlbumsData = async () => {
         try {
             const response = await axios.get(`${url}/api/album/list`);
+            console.log('Albums data:', response.data.albums);
             setAlbumsData(response.data.albums);
         } catch (error) {
-            console.log('error getSongsData', error);
+            console.log('error getAlbumsData', error);
         }
-    }
+    };
 
     useEffect(() => {
         getAlbumsData();
         getSongsData();
-    }, [])
+    }, []);
 
     const contextValue = {
         audioRef,
@@ -186,14 +189,13 @@ const PlayerContextProvider = (props) => {
         isShuffle, toggleShuffle,
         volume, handleVolumeChange,
         isMuted, toggleMute
-    }
+    };
 
     return (
         <PlayerContext.Provider value={contextValue}>
             {props.children}
         </PlayerContext.Provider>
-    )
+    );
+};
 
-}
-
-export default PlayerContextProvider
+export default PlayerContextProvider;

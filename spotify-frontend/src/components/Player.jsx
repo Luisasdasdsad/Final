@@ -3,18 +3,21 @@ import { assets } from './../assets/frontend-assets/assets';
 import { PlayerContext } from '../context/PlayerContext';
 
 function Player() {
-
     const { track, seekBar, seekBg, play, pause, playStatus, time, nextSong, previusSong,
         seekSong, toggleLoop, isLooping, isShuffle, toggleShuffle, volume, handleVolumeChange,
-        isMuted, toggleMute } = useContext(PlayerContext)
+        isMuted, toggleMute } = useContext(PlayerContext);
 
-    return track ? (
-        <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
+    if (!track) {
+        return null; // O muestra un mensaje de carga o un componente de marcador de posición
+    }
+
+    return (
+        <div className="h-20 bg-black flex justify-between items-center text-white px-4">
             <div className="hidden lg:flex items-center gap-4">
-                <img className="w-12" src={track.image} alt="song img" />
+                <img className="w-12" src={track.image || ''} alt="song img" />
                 <div>
-                    <p>{track.name}</p>
-                    <p>{track.desc.slice(0, 12)}</p>
+                    <p>{track.name || 'Unknown'}</p>
+                    <p>{track.desc ? track.desc.slice(0, 12) : ''}</p>
                 </div>
             </div>
             <div className="flex flex-col items-center gap-1 m-auto">
@@ -27,7 +30,6 @@ function Player() {
                         <img onClick={pause} className='w-4 cursor-pointer' src={assets.pause_icon} alt="pause_icon" />
                     )}
                     <img onClick={nextSong} className='w-4 cursor-pointer' src={assets.next_icon} alt="next_icon" />
-
                     <img onClick={toggleLoop} className={isLooping ? "w-4 cursor-pointer" : "w-4 cursor-pointer opacity-40"} src={assets.loop_icon} alt="loop_icon" />
                 </div>
                 <div className="flex items-center gap-5">
@@ -58,7 +60,7 @@ function Player() {
                 <img className='w-4' src={assets.zoom_icon} alt="zoom_icon" />
             </div>
         </div>
-    ) : null
+    );
 }
 
-export default Player
+export default Player;
