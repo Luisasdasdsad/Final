@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from "cloudinary"
+import { v2 as cloudinary } from "cloudinary";
 import Song from "../models/Song.js";
 
 const addSong = async (req, res) => {
@@ -7,9 +7,17 @@ const addSong = async (req, res) => {
         const audioFile = req.files.audio[0];
         const imageFile = req.files.image[0];
 
+        if (!name || !desc || !album || !audioFile || !imageFile) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+
         const audioUpload = await cloudinary.uploader.upload(audioFile.path, { resource_type: "video" });
         const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
         const duration = `${Math.floor(audioUpload.duration / 60)}:${Math.floor(audioUpload.duration % 60)}`;
+
+        // Obtener el número de pista más alto en el álbum y asignar el siguiente número
+        const lastSong = await Song.findOne({ album }).sort({ trackNumber: -1 });
+        const trackNumber = lastSong ? lastSong.trackNumber + 1 : 1;
 
         const songData = {
             name,
@@ -17,18 +25,17 @@ const addSong = async (req, res) => {
             album,
             image: imageUpload.secure_url,
             file: audioUpload.secure_url,
-            duration
+            duration,
+            trackNumber
         }
 
-        const song = Song(songData);
+        const song = new Song(songData);
         await song.save();
 
-        res.status(201).json({ success: true, message: "Song Added" })
-
-
+        res.status(201).json({ success: true, message: "Song Added" });
     } catch (error) {
         console.log('Failed at addSong, ', error);
-        res.status(400).json({ success: false, message: "Song Add Failed" })
+        res.status(400).json({ success: false, message: "Song Add Failed", error: error.message });
     }
 }
 
@@ -38,7 +45,7 @@ const listSong = async (req, res) => {
         res.status(201).json({ success: true, songs: allSongs });
     } catch (error) {
         console.log('Failed at listSong, ', error);
-        res.status(400).json({ success: false, message: "Song List Failed" })
+        res.status(400).json({ success: false, message: "Song List Failed" });
     }
 }
 
@@ -49,7 +56,7 @@ const removeSong = async (req, res) => {
         res.status(200).json({ success: true, message: "Song removed success" });
     } catch (error) {
         console.log('Failed at removeSong, ', error);
-        res.status(400).json({ success: false, message: "Song removed Failed" })
+        res.status(400).json({ success: false, message: "Song removed Failed" });
     }
 }
 

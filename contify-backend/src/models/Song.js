@@ -25,6 +25,10 @@ const songSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    trackNumber: {
+        type: Number,
+        required: true
+    }
 })
 
 const Song = mongoose.models.song || mongoose.model("song", songSchema);

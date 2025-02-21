@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from "cloudinary"
+import { v2 as cloudinary } from "cloudinary";
 import Album from "../models/Album.js";
 import Song from './../models/Song.js';
 
@@ -20,8 +20,6 @@ const addAlbum = async (req, res) => {
         await album.save();
 
         res.status(201).json({ success: true, message: "Album Added" })
-
-
     } catch (error) {
         console.log('Failed at addAlbum, ', error);
         res.status(400).json({ success: false, message: "Album Add Failed" })
@@ -56,4 +54,20 @@ const removeAlbum = async (req, res) => {
     }
 }
 
-export { addAlbum, listAlbum, removeAlbum }
+const playAlbum = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const album = await Album.findById(id);
+        if (!album) {
+            return res.status(404).json({ success: false, message: "Album not found" });
+        }
+
+        const songs = await Song.find({ album: album.name }).sort({ trackNumber: 1 });
+        res.status(200).json({ success: true, songs });
+    } catch (error) {
+        console.log('Failed at playAlbum, ', error);
+        res.status(400).json({ success: false, message: "Failed to play album" });
+    }
+}
+
+export { addAlbum, listAlbum, removeAlbum, playAlbum }
